@@ -1,9 +1,8 @@
-package controllers
+package handler
 
 import (
 	"net/http"
 	"paya/config"
-	"paya/database"
 	"paya/models"
 
 	"github.com/dgrijalva/jwt-go"
@@ -19,7 +18,9 @@ func Register(c *gin.Context) {
 	}
 	hashedPassword, _ := bcrypt.GenerateFromPassword([]byte(user.Password), 10)
 	user.Password = string(hashedPassword)
-	database.DB.Create(&user)
+
+	// database.DB.Create(&user)
+	
 	c.JSON(http.StatusOK, user)
 }
 
@@ -30,10 +31,10 @@ func Login(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	if err := database.DB.Where("username = ?", input.Username).First(&user).Error; err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
-		return
-	}
+	// if err := database.DB.Where("username = ?", input.Username).First(&user).Error; err != nil {
+	// 	c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
+	// 	return
+	// }
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(input.Password)); err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 		return
@@ -46,6 +47,6 @@ func generateToken(userID uint) string {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"user_id": userID,
 	})
-	tokenString, _ := token.SignedString([]byte(config.AppConfig.JWT.Secret))
+	tokenString, _ := token.SignedString([]byte(config.Cfg.JWT.Secret))
 	return tokenString
 }
