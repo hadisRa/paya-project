@@ -7,7 +7,8 @@ import (
 	"time"
 
 	"github.com/go-redis/redis/v8"
-	"github.com/jinzhu/gorm"
+	"gorm.io/gorm"
+
 	"github.com/spf13/viper"
 )
 
