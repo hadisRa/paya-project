@@ -27,42 +27,92 @@ func (h *TaskHandler) CreateTask() gin.HandlerFunc {
 		if err := ctx.ShouldBindJSON(&task); err != nil {
 			middleware.RequestCounterMiddleware(http.StatusBadRequest, ctx.Request.Method, ctx.FullPath())
 			ctx.JSON(http.StatusBadRequest, gin.H{
-				"error": err.Error(),
+				"status":  http.StatusBadRequest,
+				"error":   "@handler.task_handler.CreateTask",
+				"message": err.Error(),
 			})
 			return
 		}
-		task.UserID = ctx.MustGet("user_id").(uint)
+
+		userId, ok := ctx.Get("user_id")
+		if !ok {
+			ctx.JSON(http.StatusUnauthorized, gin.H{
+				"status":  http.StatusUnauthorized,
+				"error":   "@handler.task_handler.CreateTask",
+				"message": "User ID not found in the context",
+			})
+			return
+		}
+
+		userIdUint, ok := userId.(uint)
+		if !ok {
+			ctx.JSON(http.StatusBadRequest, gin.H{
+				"status":  http.StatusBadRequest,
+				"error":   "@handler.task_handler.CreateTask",
+				"message": "Invalid user ID type",
+			})
+			return
+		}
+
+		task.UserID = userIdUint
 
 		err := h.service.CreateTask(task)
 		if err != nil {
 			middleware.RequestCounterMiddleware(http.StatusInternalServerError, ctx.Request.Method, ctx.FullPath())
 			ctx.JSON(http.StatusInternalServerError, gin.H{
-				"error": "Failed to create task",
+				"status":  http.StatusInternalServerError,
+				"error":   "@handler.task_handler.CreateTask.CreateTask",
+				"message": "Failed to create task",
 			})
 			return
 		}
 
 		middleware.RequestCounterMiddleware(http.StatusOK, ctx.Request.Method, ctx.FullPath())
 		ctx.JSON(http.StatusOK, gin.H{
-			"status": "success",
-			"task":   task,
+			"status": http.StatusOK,
 		})
 	}
 }
 
-func (h *TaskHandler) GetTask() gin.HandlerFunc {
+func (h *TaskHandler) GetUserTask() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 
-		userId := ctx.MustGet("user_id").(uint)
-		//TODO: check the id or user id?
-		task, err := h.service.GetTask(userId)
-		if err != nil {
-			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to Get task"})
+		userId, ok := ctx.Get("user_id")
+		if !ok {
+			ctx.JSON(http.StatusUnauthorized, gin.H{
+				"status":  http.StatusUnauthorized,
+				"error":   "@handler.task_handler.GetUserTask",
+				"message": "User ID not found in the context",
+			})
 			return
 		}
 
-		ctx.JSON(http.StatusOK, gin.H{"status": "success", "task": task})
+		userIdUint, ok := userId.(uint)
+		if !ok {
+			ctx.JSON(http.StatusBadRequest, gin.H{
+				"status":  http.StatusBadRequest,
+				"error":   "@handler.task_handler.GetUserTask",
+				"message": "Invalid user ID type",
+			})
+			return
+		}
 
+		tasks, err := h.service.GetUserTasks(userIdUint)
+		if err != nil {
+			middleware.RequestCounterMiddleware(http.StatusInternalServerError, ctx.Request.Method, ctx.FullPath())
+			ctx.JSON(http.StatusInternalServerError, gin.H{
+				"status":  http.StatusInternalServerError,
+				"error":   "@handler.task_handler.GetUserTask.GetUserTasks",
+				"message": "Failed to Get user tasks",
+			})
+			return
+		}
+
+		middleware.RequestCounterMiddleware(http.StatusOK, ctx.Request.Method, ctx.FullPath())
+		ctx.JSON(http.StatusOK, gin.H{
+			"status": http.StatusOK,
+			"task":   tasks,
+		})
 	}
 }
 
@@ -73,7 +123,11 @@ func (h *TaskHandler) UpdateTask() gin.HandlerFunc {
 		idStr := ctx.Param("id")
 		id, err := strconv.Atoi(idStr)
 		if err != nil {
-			ctx.JSON(http.StatusBadRequest, gin.H{"error": "id is not valid"})
+			middleware.RequestCounterMiddleware(http.StatusOK, ctx.Request.Method, ctx.FullPath())
+			ctx.JSON(http.StatusBadRequest, gin.H{
+				"status": "failed",
+				"error":  "id is not valid",
+			})
 			return
 		}
 

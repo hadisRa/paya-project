@@ -7,7 +7,7 @@ import (
 
 type Task interface {
 	CreateTask(item models.Task) error
-	GetTask(id uint) (*models.Task, error)
+	GetUserTasks(userID uint) ([]models.Task, error)
 	UpdateTask(id int, task *models.Task) error
 	DeleteTask(id int) error
 }
@@ -31,25 +31,25 @@ func (t *TaskService) CreateTask(item models.Task) error {
 	return nil
 }
 
-func (t *TaskService) GetTask(id uint) (*models.Task, error) {
-	task, err := t.Repo.FindByID(id)
+func (t *TaskService) GetUserTasks(userID uint) ([]models.Task, error) {
+	task, err := t.Repo.FindByUserID(userID)
 	if err != nil {
 		return nil, err
 	}
 
 	return task, nil
 }
-func (t *TaskService) UpdateTask(id int,task *models.Task) error {
-	err :=t.Repo.Update(id,task)
+func (t *TaskService) UpdateTask(id int, task *models.Task) error {
+	err := t.Repo.Update(id, task)
 	if err != nil {
 		return err
 	}
-	return nil 
+	return nil
 }
 func (t *TaskService) DeleteTask(id int) error {
-	err :=t.Repo.Delete(id)
+	err := t.Repo.Delete(id)
 	if err != nil {
 		return err
 	}
-	return nil 
+	return nil
 }

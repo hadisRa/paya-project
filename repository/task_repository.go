@@ -10,7 +10,7 @@ type TaskRepository interface {
 	Create(task *models.Task) error
 	FindByUserID(userID uint) ([]models.Task, error)
 	FindByID(id uint) (*models.Task, error)
-	Update(id int,task *models.Task) error
+	Update(id int, task *models.Task) error
 	Delete(id int) error
 }
 
@@ -40,7 +40,7 @@ func (r *taskRepository) FindByID(id uint) (*models.Task, error) {
 	return &task, err
 }
 
-func (r *taskRepository) Update(id int,task *models.Task) error {
+func (r *taskRepository) Update(id int, task *models.Task) error {
 	return r.db.Save(task).Error
 }
 

@@ -16,7 +16,7 @@ func Routes(g *gin.Engine, handler *handler.Handler) {
 	g.Use(middleware.RateLimiter(5, 10))
 
 	g.POST("/tasks", middleware.RateLimiter(10, 20), handler.TasskHandler.CreateTask())
-	g.GET("/tasks", handler.TasskHandler.GetTask())
+	g.GET("/tasks", handler.TasskHandler.GetUserTask())
 	g.PUT("/tasks/:id", handler.TasskHandler.UpdateTask())
 	g.DELETE("/tasks/:id", handler.TasskHandler.DeleteTask())
 
