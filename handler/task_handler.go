@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"paya/models"
 	"paya/service"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -55,33 +56,49 @@ func (h *TaskHandler) GetTask() gin.HandlerFunc {
 	}
 }
 
-func UpdateTask(c *gin.Context) {
-	// var task models.Task
-	// id := c.Param("id")
+func (h *TaskHandler) UpdateTask() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
 
-	// if err := database.DB.Where("id = ?", id).First(&task).Error; err != nil {
-	// 	c.JSON(http.StatusNotFound, gin.H{"error": "Task not found"})
-	// 	return
-	// }
+		var task models.Task
+		idStr := ctx.Param("id")
+		id, err := strconv.Atoi(idStr)
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": "id is not valid"})
+			return
+		}
 
-	// if err := c.ShouldBindJSON(&task); err != nil {
-	// 	c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-	// 	return
-	// }
+		err = h.service.UpdateTask(id, &task)
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to Update task"})
+			return
+		}
 
-	// database.DB.Save(&task)
-	// c.JSON(http.StatusOK, task)
+		// if err := database.DB.Where("id = ?", id).First(&task).Error; err != nil {
+		// 	ctx.JSON(http.StatusNotFound, gin.H{"error": "Task not found"})
+		// 	return
+		// }
+
+		//TODO: save in to service
+		// database.DB.Save(&task)
+		ctx.JSON(http.StatusOK, gin.H{"status": "success", "task": task})
+	}
 }
+func (h *TaskHandler) DeleteTask() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
 
-func DeleteTask(c *gin.Context) {
-	// id := c.Param("id")
-	// var task models.Task
+		idStr := ctx.Param("id")
+		id, err := strconv.Atoi(idStr)
+		if err != nil {
+			ctx.JSON(http.StatusBadRequest, gin.H{"error": "id is not valid"})
+			return
+		}
 
-	// if err := database.DB.Where("id = ?", id).First(&task).Error; err != nil {
-	// 	c.JSON(http.StatusNotFound, gin.H{"error": "Task not found"})
-	// 	return
-	// }
+		err = h.service.DeleteTask(id)
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to Delete task"})
+			return
+		}
 
-	// database.DB.Delete(&task)
-	// c.JSON(http.StatusOK, gin.H{"message": "Task deleted successfully"})
+		ctx.JSON(http.StatusOK, gin.H{"message": "Task deleted successfully"})
+	}
 }
