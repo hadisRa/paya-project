@@ -13,7 +13,7 @@ func Routes(g *gin.Engine, handler *handler.Handler) {
 
 	g.Use(middleware.AuthMiddleware())
 	g.POST("/tasks", handler.TasskHandler.CreateTask())
-	// g.GET("/tasks", handler.GetTasks)
+	 g.GET("/tasks", handler.TasskHandler.GetTask())
 	// g.PUT("/tasks/:id", handler.UpdateTask)
 	// g.DELETE("/tasks/:id", handler.DeleteTask)
 

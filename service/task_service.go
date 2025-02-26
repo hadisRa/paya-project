@@ -7,6 +7,7 @@ import (
 
 type Task interface {
 	CreateTask(item models.Task) error
+	GetTask(id uint) (*models.Task, error)
 }
 
 type TaskService struct {
@@ -26,4 +27,13 @@ func (t *TaskService) CreateTask(item models.Task) error {
 	}
 
 	return nil
+}
+
+func (t *TaskService) GetTask(id uint) (*models.Task, error) {
+	task, err := t.Repo.FindByID(id)
+	if err != nil {
+		return nil, err
+	}
+
+	return task, nil
 }
