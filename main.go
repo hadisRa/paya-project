@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"paya/config"
 	"paya/handler"
+	"paya/metrics"
 	"paya/repository"
 	"paya/routes"
 	"paya/service"
@@ -23,6 +24,8 @@ func main() {
 	handr := handler.NewHandlers(srv)
 
 	g := gin.Default()
+	g.GET("/metrics", gin.WrapH(metrics.MetricsHandler()))
+
 	routes.Routes(g, handr)
 
 	g.Run(":8080")

@@ -2,6 +2,7 @@ package handler
 
 import (
 	"net/http"
+	"paya/middleware"
 	"paya/models"
 	"paya/service"
 	"strconv"
@@ -21,22 +22,31 @@ func NewTaskHandler(srv service.Task) *TaskHandler {
 
 func (h *TaskHandler) CreateTask() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-
 		var task models.Task
-		if err := ctx.ShouldBindJSON(&task); err != nil {
 
-			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		if err := ctx.ShouldBindJSON(&task); err != nil {
+			middleware.RequestCounterMiddleware(http.StatusBadRequest, ctx.Request.Method, ctx.FullPath())
+			ctx.JSON(http.StatusBadRequest, gin.H{
+				"error": err.Error(),
+			})
 			return
 		}
 		task.UserID = ctx.MustGet("user_id").(uint)
 
 		err := h.service.CreateTask(task)
 		if err != nil {
-			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create task"})
+			middleware.RequestCounterMiddleware(http.StatusInternalServerError, ctx.Request.Method, ctx.FullPath())
+			ctx.JSON(http.StatusInternalServerError, gin.H{
+				"error": "Failed to create task",
+			})
 			return
 		}
 
-		ctx.JSON(http.StatusOK, gin.H{"status": "success", "task": task})
+		middleware.RequestCounterMiddleware(http.StatusOK, ctx.Request.Method, ctx.FullPath())
+		ctx.JSON(http.StatusOK, gin.H{
+			"status": "success",
+			"task":   task,
+		})
 	}
 }
 
