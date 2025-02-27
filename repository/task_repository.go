@@ -29,6 +29,10 @@ func (r *taskRepository) Create(task *models.Task) error {
 	return r.db.Create(task).Error
 }
 
+func (r *taskRepository) Find(id int, task *models.Task) error {
+	return r.db.First(task, id).Error
+}
+
 func (r *taskRepository) FindByUserID(userID uint) ([]models.Task, error) {
 	var tasks []models.Task
 	err := r.db.Where("user_id = ?", userID).Find(&tasks).Error
@@ -47,8 +51,4 @@ func (r *taskRepository) Update(id int, task *models.Task) error {
 
 func (r *taskRepository) Delete(id int) error {
 	return r.db.Delete(id).Error
-}
-
-func (r *taskRepository) Find(id int, task *models.Task) error {
-	return r.db.First(task, id).Error // This will return gorm.ErrRecordNotFound if not found
 }

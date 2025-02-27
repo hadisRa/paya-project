@@ -9,7 +9,7 @@ type Task interface {
 	CreateTaskByUserID(item models.Task) error
 	GetUserTaskByUserID(userID uint) ([]models.Task, error)
 	UpdateTaskByID(id int, item *models.Task) error
-	DeleteTask(id int) error
+	DeleteTaskByID(id int) error
 }
 
 type TaskService struct {
@@ -49,7 +49,7 @@ func (t *TaskService) UpdateTaskByID(id int, task *models.Task) error {
 	return t.Repo.Update(id, task)
 }
 
-func (t *TaskService) DeleteTask(id int) error {
+func (t *TaskService) DeleteTaskByID(id int) error {
 	err := t.Repo.Delete(id)
 	if err != nil {
 		return err

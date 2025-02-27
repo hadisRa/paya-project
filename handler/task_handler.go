@@ -6,7 +6,6 @@ import (
 	"paya/middleware"
 	"paya/models"
 	"paya/service"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -184,20 +183,53 @@ func (h *TaskHandler) UpdateTask() gin.HandlerFunc {
 
 func (h *TaskHandler) DeleteTask() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-
-		idStr := ctx.Param("id")
-		id, err := strconv.Atoi(idStr)
-		if err != nil {
-			ctx.JSON(http.StatusBadRequest, gin.H{"error": "id is not valid"})
+		id, ok := ctx.Get("id")
+		if !ok {
+			middleware.RequestCounterMiddleware(http.StatusUnauthorized, ctx.Request.Method, ctx.FullPath())
+			ctx.JSON(http.StatusUnauthorized, gin.H{
+				"status":  http.StatusUnauthorized,
+				"error":   "@handler.task_handler.DeleteTask",
+				"message": "ID not found in the context",
+			})
 			return
 		}
 
-		err = h.service.DeleteTask(id)
-		if err != nil {
-			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to Delete task"})
+		ID, ok := id.(int)
+		if !ok {
+			middleware.RequestCounterMiddleware(http.StatusBadRequest, ctx.Request.Method, ctx.FullPath())
+			ctx.JSON(http.StatusBadRequest, gin.H{
+				"status":  http.StatusBadRequest,
+				"error":   "@handler.task_handler.DeleteTask",
+				"message": "Invalid ID type",
+			})
 			return
 		}
 
-		ctx.JSON(http.StatusOK, gin.H{"message": "Task deleted successfully"})
+		err := h.service.DeleteTaskByID(ID)
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				middleware.RequestCounterMiddleware(http.StatusNotFound, ctx.Request.Method, ctx.FullPath())
+				ctx.JSON(http.StatusNotFound, gin.H{
+					"status":  http.StatusNotFound,
+					"error":   "@handler.task_handler.UpdateTask.UpdateTaskByID",
+					"message": "Task not found",
+				})
+				return
+			}
+			middleware.RequestCounterMiddleware(http.StatusInternalServerError, ctx.Request.Method, ctx.FullPath())
+			ctx.JSON(http.StatusInternalServerError, gin.H{
+				"status":  http.StatusInternalServerError,
+				"error":   "@handler.task_handler.UpdateTask.UpdateTaskByID",
+				"message": "Failed to delete task",
+			})
+			return
+		}
+
+		middleware.RequestCounterMiddleware(http.StatusOK, ctx.Request.Method, ctx.FullPath())
+		ctx.JSON(http.StatusOK, gin.H{
+			"status":  http.StatusOK,
+			"message": "Task deleted successfully",
+		})
+
 	}
 }
