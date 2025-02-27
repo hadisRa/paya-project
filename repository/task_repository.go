@@ -8,6 +8,7 @@ import (
 
 type TaskRepository interface {
 	Create(task *models.Task) error
+	Find(id int, task *models.Task) error
 	FindByUserID(userID uint) ([]models.Task, error)
 	FindByID(id uint) (*models.Task, error)
 	Update(id int, task *models.Task) error
@@ -41,9 +42,13 @@ func (r *taskRepository) FindByID(id uint) (*models.Task, error) {
 }
 
 func (r *taskRepository) Update(id int, task *models.Task) error {
-	return r.db.Save(task).Error
+	return r.db.Model(&models.Task{}).Where("id = ?", id).Updates(task).Error
 }
 
 func (r *taskRepository) Delete(id int) error {
 	return r.db.Delete(id).Error
+}
+
+func (r *taskRepository) Find(id int, task *models.Task) error {
+	return r.db.First(task, id).Error // This will return gorm.ErrRecordNotFound if not found
 }

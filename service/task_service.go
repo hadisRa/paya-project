@@ -6,9 +6,9 @@ import (
 )
 
 type Task interface {
-	CreateTask(item models.Task) error
-	GetUserTasks(userID uint) ([]models.Task, error)
-	UpdateTask(id int, task *models.Task) error
+	CreateTaskByUserID(item models.Task) error
+	GetUserTaskByUserID(userID uint) ([]models.Task, error)
+	UpdateTaskByID(id int, item *models.Task) error
 	DeleteTask(id int) error
 }
 
@@ -22,7 +22,7 @@ func NewTask(repo repository.TaskRepository) *TaskService {
 	}
 }
 
-func (t *TaskService) CreateTask(item models.Task) error {
+func (t *TaskService) CreateTaskByUserID(item models.Task) error {
 	err := t.Repo.Create(&item)
 	if err != nil {
 		return err
@@ -31,7 +31,7 @@ func (t *TaskService) CreateTask(item models.Task) error {
 	return nil
 }
 
-func (t *TaskService) GetUserTasks(userID uint) ([]models.Task, error) {
+func (t *TaskService) GetUserTaskByUserID(userID uint) ([]models.Task, error) {
 	task, err := t.Repo.FindByUserID(userID)
 	if err != nil {
 		return nil, err
@@ -39,13 +39,16 @@ func (t *TaskService) GetUserTasks(userID uint) ([]models.Task, error) {
 
 	return task, nil
 }
-func (t *TaskService) UpdateTask(id int, task *models.Task) error {
-	err := t.Repo.Update(id, task)
-	if err != nil {
+
+func (t *TaskService) UpdateTaskByID(id int, task *models.Task) error {
+	existingTask := &models.Task{}
+	if err := t.Repo.Find(id, existingTask); err != nil {
 		return err
 	}
-	return nil
+
+	return t.Repo.Update(id, task)
 }
+
 func (t *TaskService) DeleteTask(id int) error {
 	err := t.Repo.Delete(id)
 	if err != nil {
