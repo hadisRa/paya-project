@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"paya/config"
 	"paya/handler"
 	"paya/metrics"
@@ -17,11 +16,11 @@ func main() {
 
 	taskRepo := repository.NewTaskRepository(s.GormConnection)
 	userRepo := repository.NewUserRepository(s.GormConnection)
-	//TODO: remove this
-	fmt.Println("here", taskRepo, userRepo)
 
-	srv := service.NewTask(taskRepo)
-	handr := handler.NewHandlers(srv)
+	taskSrv := service.NewTask(taskRepo)
+	userSrv := service.NewUser(userRepo)
+
+	handr := handler.NewHandlers(taskSrv, userSrv)
 
 	g := gin.Default()
 	g.GET("/metrics", gin.WrapH(metrics.MetricsHandler()))

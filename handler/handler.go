@@ -4,10 +4,12 @@ import "paya/service"
 
 type Handler struct {
 	TasskHandler *TaskHandler
+	UserHandler  *UserHandler
 }
 
-func NewHandlers(srv service.Task) *Handler {
+func NewHandlers(taskSrv service.Task, userSrv service.User) *Handler {
 	return &Handler{
-		TasskHandler: NewTaskHandler(srv),
+		TasskHandler: NewTaskHandler(taskSrv),
+		UserHandler:  NewUserHandler(userSrv),
 	}
 }

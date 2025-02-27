@@ -20,8 +20,8 @@ func NewUser(repo repository.UserRepository) *UserService {
 	}
 }
 
-func (t *UserService) CreateUser(user models.User) error {
-	err := t.Repo.Create(&user)
+func (t *UserService) CreateUser(user *models.User) error {
+	err := t.Repo.Create(user)
 	if err != nil {
 		return err
 	}
