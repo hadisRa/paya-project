@@ -6,25 +6,27 @@ import (
 	"gorm.io/gorm"
 )
 
-type UserRepository interface {
+type UserInterface interface {
 	Create(user *models.User) error
 	FindByID(id int) (*models.User, error)
 }
 
-type userRepository struct {
+type UserRepository struct {
 	db *gorm.DB
 }
 
-func NewUserRepository(db *gorm.DB) UserRepository {
-	return &userRepository{db}
+func NewUserRepository(db *gorm.DB) *UserRepository {
+	return &UserRepository{
+		db: db,
+	}
 }
 
-func (r *userRepository) Create(user *models.User) error {
-	return r.db.Create(user).Error
+func (u *UserRepository) Create(user *models.User) error {
+	return u.db.Create(user).Error
 }
 
-func (r *userRepository) FindByID(id int) (*models.User, error) {
+func (u *UserRepository) FindByID(id int) (*models.User, error) {
 	var user models.User
-	err := r.db.Where("id = ?", id).First(&user).Error
+	err := u.db.Where("id = ?", id).First(&user).Error
 	return &user, err
 }
