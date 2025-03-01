@@ -6,7 +6,7 @@ import (
 	"gorm.io/gorm"
 )
 
-type TaskRepository interface {
+type TaskInterface interface {
 	Create(task *models.Task) error
 	Find(id int, task *models.Task) error
 	FindByUserID(userID uint) ([]models.Task, error)
@@ -15,40 +15,40 @@ type TaskRepository interface {
 	Delete(id int) error
 }
 
-type taskRepository struct {
+type TaskRepository struct {
 	db *gorm.DB
 }
 
-func NewTaskRepository(gdb *gorm.DB) TaskRepository {
-	return &taskRepository{
+func NewTaskRepository(gdb *gorm.DB) *TaskRepository {
+	return &TaskRepository{
 		db: gdb,
 	}
 }
 
-func (r *taskRepository) Create(task *models.Task) error {
-	return r.db.Create(task).Error
+func (t *TaskRepository) Create(task *models.Task) error {
+	return t.db.Create(task).Error
 }
 
-func (r *taskRepository) Find(id int, task *models.Task) error {
-	return r.db.First(task, id).Error
+func (t *TaskRepository) Find(id int, task *models.Task) error {
+	return t.db.First(task, id).Error
 }
 
-func (r *taskRepository) FindByUserID(userID uint) ([]models.Task, error) {
+func (t *TaskRepository) FindByUserID(userID uint) ([]models.Task, error) {
 	var tasks []models.Task
-	err := r.db.Where("user_id = ?", userID).Find(&tasks).Error
+	err := t.db.Where("user_id = ?", userID).Find(&tasks).Error
 	return tasks, err
 }
 
-func (r *taskRepository) FindByID(id uint) (*models.Task, error) {
+func (t *TaskRepository) FindByID(id uint) (*models.Task, error) {
 	var task models.Task
-	err := r.db.First(&task, id).Error
+	err := t.db.First(&task, id).Error
 	return &task, err
 }
 
-func (r *taskRepository) Update(id int, task *models.Task) error {
-	return r.db.Model(&models.Task{}).Where("id = ?", id).Updates(task).Error
+func (t *TaskRepository) Update(id int, task *models.Task) error {
+	return t.db.Model(&models.Task{}).Where("id = ?", id).Updates(task).Error
 }
 
-func (r *taskRepository) Delete(id int) error {
-	return r.db.Delete(id).Error
+func (t *TaskRepository) Delete(id int) error {
+	return t.db.Delete(id).Error
 }
