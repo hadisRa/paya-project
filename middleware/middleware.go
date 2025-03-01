@@ -46,3 +46,13 @@ func RequestCounterMiddleware(status int, method, path string) {
 	strStatus := strconv.Itoa(status)
 	metrics.TaskCreationCounter.WithLabelValues(strStatus, method, path).Inc()
 }
+
+func GenerateJWT(userID uint) (string, error) {
+	claims := jwt.MapClaims{
+		"user_id": userID,
+		"exp":     time.Now().Add(time.Hour * 72).Unix(),
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	return token.SignedString([]byte("secret_key"))
+}
