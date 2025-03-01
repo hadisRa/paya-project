@@ -139,22 +139,46 @@ func (h *UserHandler) Register() gin.HandlerFunc {
 
 func (h *UserHandler) Login() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
-		var user models.User
 		var input models.User
+
 		if err := ctx.ShouldBindJSON(&input); err != nil {
-			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			middleware.RequestCounterMiddleware(http.StatusBadRequest, ctx.Request.Method, ctx.FullPath())
+			ctx.JSON(http.StatusBadRequest, gin.H{
+				"status":  http.StatusBadRequest,
+				"error":   "@handler.user_handler.Login",
+				"message": err.Error(),
+			})
 			return
 		}
-		// if err := database.DB.Where("username = ?", input.Username).First(&user).Error; err != nil {
-		// 	c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
-		// 	return
-		// }
+
+		user, err := h.UserSrv.GetUser(input.Username)
+		if err != nil {
+			middleware.RequestCounterMiddleware(http.StatusUnauthorized, ctx.Request.Method, ctx.FullPath())
+			ctx.JSON(http.StatusUnauthorized, gin.H{
+				"status":  http.StatusUnauthorized,
+				"error":   "@handler.user_handler.Login.GetUser",
+				"message": "Invalid credentials",
+			})
+			return
+		}
+
 		if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(input.Password)); err != nil {
-			ctx.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
+			middleware.RequestCounterMiddleware(http.StatusUnauthorized, ctx.Request.Method, ctx.FullPath())
+			ctx.JSON(http.StatusUnauthorized, gin.H{
+				"status":  http.StatusUnauthorized,
+				"error":   "@handler.user_handler.Login.CompareHashAndPassword",
+				"message": "Invalid credentials",
+			})
 			return
 		}
+
 		token := generateToken(user.ID)
-		ctx.JSON(http.StatusOK, gin.H{"token": token})
+
+		middleware.RequestCounterMiddleware(http.StatusOK, ctx.Request.Method, ctx.FullPath())
+		ctx.JSON(http.StatusOK, gin.H{
+			"status": http.StatusOK,
+			"token":  token,
+		})
 	}
 }
 

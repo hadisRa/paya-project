@@ -9,6 +9,7 @@ import (
 type UserInterface interface {
 	Create(user *models.User) error
 	FindByID(id int) (*models.User, error)
+	FindByUsername(userName string) (*models.User, error)
 }
 
 type UserRepository struct {
@@ -22,11 +23,30 @@ func NewUserRepository(db *gorm.DB) *UserRepository {
 }
 
 func (u *UserRepository) Create(user *models.User) error {
-	return u.db.Create(user).Error
+	err := u.db.Create(user).Error
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (u *UserRepository) FindByID(id int) (*models.User, error) {
 	var user models.User
 	err := u.db.Where("id = ?", id).First(&user).Error
-	return &user, err
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
+}
+
+func (u *UserRepository) FindByUsername(userName string) (*models.User, error) {
+	var user models.User
+	err := u.db.Where("username = ?", userName).First(&user).Error
+	if err != nil {
+		return nil, err
+	}
+
+	return &user, nil
 }

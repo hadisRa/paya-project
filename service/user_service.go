@@ -7,7 +7,7 @@ import (
 
 type User interface {
 	CreateUser(user *models.User) error
-	GetUser(id int) (*models.User, error)
+	GetUser(userName string) (*models.User, error)
 }
 
 type UserService struct {
@@ -28,8 +28,8 @@ func (t *UserService) CreateUser(user *models.User) error {
 
 	return nil
 }
-func (t *UserService) GetUser(id int) (*models.User, error) {
-	user, err := t.Repo.FindByID(id)
+func (t *UserService) GetUser(userName string) (*models.User, error) {
+	user, err := t.Repo.FindByUsername(userName)
 	if err != nil {
 		return nil, err
 	}
