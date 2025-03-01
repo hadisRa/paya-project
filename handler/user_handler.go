@@ -157,59 +157,11 @@ func (h *UserHandler) Login() gin.HandlerFunc {
 		ctx.JSON(http.StatusOK, gin.H{"token": token})
 	}
 }
+
 func generateToken(userID uint) string {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"user_id": userID,
 	})
 	tokenString, _ := token.SignedString([]byte(config.Cfg.JWT.Secret))
 	return tokenString
-}
-
-func (h *UserHandler) VerifyOTP() gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		var request struct {
-			Username string `json:"username"`
-			Password string `json:"password"`
-			OTP      string `json:"otp"`
-		}
-
-		if err := ctx.ShouldBindJSON(&request); err != nil {
-			ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-
-		storedOTP, err := h.CacheRepo.Get(ctx, request.Username)
-		if err == redis.Nil {
-			ctx.JSON(http.StatusBadRequest, gin.H{"error": "OTP has expired or does not exist"})
-			return
-		} else if err != nil {
-			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve OTP"})
-			return
-		}
-
-		if storedOTP != request.OTP {
-			ctx.JSON(http.StatusBadRequest, gin.H{"error": "Invalid OTP"})
-			return
-		}
-
-		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(request.Password), bcrypt.DefaultCost)
-		if err != nil {
-			ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
-			return
-		}
-		request.Password = string(hashedPassword)
-
-		// if err := h.UserSrv.CreateUser(&user); err != nil {
-		// 	ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
-		// 	return
-		// }
-
-		// token, err := middleware.GenerateJWT()
-		// if err != nil {
-		// 	ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
-		// 	return
-		// }
-
-		// ctx.JSON(http.StatusOK, gin.H{"token": token})
-	}
 }
